@@ -1,17 +1,23 @@
 -- create users table
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
-  "username" VARCHAR(25) NOT NULL
-);
+  "username" VARCHAR(25) NOT NULL,
+  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+  );
 
 -- Ensure usernames are unique
 ALTER TABLE "users" ADD CONSTRAINT "username_unique"
     UNIQUE ("username");
 
+-- ensure username can’t be empty\blank.
+ALTER TABLE "users"
+ADD CONSTRAINT "chk_username_text" CHECK (trim("username") <> '');
+
 CREATE TABLE topics (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(30),
+    name VARCHAR(30) NOT NULL,
     description VARCHAR(500)
+    
 );
 
 -- Ensure topic names are unique
@@ -19,22 +25,24 @@ ALTER TABLE "topics"
 ADD CONSTRAINT "unique_topic_name" UNIQUE ("name");
 
 -- Ensure topic names cannot be empty (NOT NULL)
-ALTER TABLE "topics" 
-ALTER COLUMN name SET NOT NULL;
+ALTER TABLE "topics"
+ADD CONSTRAINT "chk_topic_name" CHECK (trim("name") <> '');
 
--- create post table
+
 CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
-    topic_id INT,
+    topic_id INT NOT NULL,
     user_id INT,
-    title VARCHAR(100),
+    title VARCHAR(100) NOT NULL,
     url VARCHAR(4000) DEFAULT NULL,
-    text_content TEXT DEFAULT NULL
+    text_content TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Ensure titles are required and cannot be empty
-ALTER TABLE "posts" 
-ALTER COLUMN "title" SET NOT NULL;
+-- A comment’s text content can’t be empty.
+ALTER TABLE "post"
+ADD CONSTRAINT "chk_title" CHECK (trim("text_content") <> '');
+
 
 -- Ensure posts contain either a URL or text content, but not both
 ALTER TABLE "posts" 
@@ -75,6 +83,7 @@ ALTER TABLE "comments" ADD CONSTRAINT "fk_comments_user" FOREIGN KEY ("user_id")
 -- If a comment gets deleted, then all its descendants in the thread structure should be automatically deleted too.
 
 ALTER TABLE "comments" ADD CONSTRAINT "fk_comments_parent" FOREIGN KEY ("parent_comment_id") REFERENCES "comments"("id") ON DELETE CASCADE;
+
 
 
 CREATE TABLE votes (
