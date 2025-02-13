@@ -2,7 +2,7 @@
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
   "username" VARCHAR(25) NOT NULL,
-  "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+  "last_login_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
   );
 
 -- Ensure usernames are unique
@@ -31,16 +31,16 @@ ADD CONSTRAINT "chk_topic_name" CHECK (trim("name") <> '');
 
 CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
-    topic_id INT NOT NULL,
+    topic_id INT ,
     user_id INT,
     title VARCHAR(100) NOT NULL,
-    url VARCHAR(4000) DEFAULT NULL,
-    text_content TEXT DEFAULT NULL,
+    url VARCHAR(400) ,
+    text_content TEXT ,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- A comment’s text content can’t be empty.
-ALTER TABLE "post"
+ALTER TABLE "posts"
 ADD CONSTRAINT "chk_title" CHECK (trim("text_content") <> '');
 
 
@@ -66,8 +66,9 @@ CREATE TABLE comments (
     id SERIAL PRIMARY KEY,
     user_id INT,        -- ID of the user who made the comment
     post_id INT,       -- ID of the post to which the comment belongs
-    parent_comment_id INT DEFAULT NULL,  -- ID of the parent comment (NULL for top-level comments)
-    text_content TEXT NOT NULL -- The comment text (cannot be empty)
+    parent_comment_id INT ,  -- ID of the parent comment (NULL for top-level comments)
+    text_content, TEXT NOT NULL -- The comment text (cannot be empty)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- A comment’s text content can’t be empty.
@@ -75,21 +76,24 @@ ALTER TABLE "comments"
 ADD CONSTRAINT "chk_comment_text" CHECK (trim("text_content") <> '');
 
 -- If a post gets deleted, all comments associated with it should be automatically deleted too.
-ALTER TABLE "comments" ADD CONSTRAINT "fk_comments_post" FOREIGN KEY ("post_id") REFERENCES "posts"(id) ON DELETE CASCADE;
+ALTER TABLE "comments" ADD CONSTRAINT "fk_comments_post" 
+FOREIGN KEY ("post_id") REFERENCES "posts"(id) ON DELETE CASCADE;
 
 -- If the user who created the comment gets deleted, then the comment will remain, but it will become dissociated from that user.
-ALTER TABLE "comments" ADD CONSTRAINT "fk_comments_user" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;
+ALTER TABLE "comments" ADD CONSTRAINT "fk_comments_user" 
+FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL;
 
 -- If a comment gets deleted, then all its descendants in the thread structure should be automatically deleted too.
 
-ALTER TABLE "comments" ADD CONSTRAINT "fk_comments_parent" FOREIGN KEY ("parent_comment_id") REFERENCES "comments"("id") ON DELETE CASCADE;
+ALTER TABLE "comments" ADD CONSTRAINT "fk_comments_parent" 
+FOREIGN KEY ("parent_comment_id") REFERENCES "comments"("id") ON DELETE CASCADE;
 
 
 
 CREATE TABLE votes (
     id SERIAL PRIMARY KEY,
     user_id INT,       -- ID of the user who voted 
-    post_id INT NOT NULL,  -- ID of the post being voted on
+    post_id INT ,  -- ID of the post being voted on
     vote_value SMALLINT NOT NULL  -- Vote value: 1 or -1 
 );
 
@@ -102,19 +106,13 @@ ALTER TABLE "votes"
 ADD CONSTRAINT "unique_user_post_vote" UNIQUE ("user_id", "post_id");
 
 -- If the user who cast a vote gets deleted, then all their votes will remain, but will become dissociated from the user.
-ALTER TABLE "votes" 
-ADD CONSTRAINT "fk_votes_user"
-FOREIGN KEY ("user_id")
-REFERENCES "users"(id)
-ON DELETE SET NULL;
+ALTER TABLE "votes"  ADD CONSTRAINT "fk_votes_user"
+FOREIGN KEY ("user_id") REFERENCES "users"(id) ON DELETE SET NULL;
 
 -- If a post gets deleted, then all the votes for that post should be automatically deleted too.
 
-ALTER TABLE "votes" 
-ADD CONSTRAINT "fk_votes_post"
-FOREIGN KEY ("post_id")
-REFERENCES "posts"(id)
-ON DELETE CASCADE;
+ALTER TABLE "votes"  ADD CONSTRAINT "fk_votes_post" 
+FOREIGN KEY ("post_id") REFERENCES "posts"(id) ON DELETE CASCADE;
 
 
 -- Indexes to improve join performance on foreign keys:
