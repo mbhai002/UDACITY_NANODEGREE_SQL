@@ -65,7 +65,7 @@ REFERENCES "users"("id") ON DELETE SET NULL;
 CREATE TABLE comments (
     id SERIAL PRIMARY KEY,
     user_id INT,        -- ID of the user who made the comment
-    post_id INT,       -- ID of the post to which the comment belongs
+    post_id INT NOT NULL,        -- ID of the post to which the comment belongs
     parent_comment_id INT ,  -- ID of the parent comment (NULL for top-level comments)
     text_content, TEXT NOT NULL -- The comment text (cannot be empty)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -93,7 +93,7 @@ FOREIGN KEY ("parent_comment_id") REFERENCES "comments"("id") ON DELETE CASCADE;
 CREATE TABLE votes (
     id SERIAL PRIMARY KEY,
     user_id INT,       -- ID of the user who voted 
-    post_id INT ,  -- ID of the post being voted on
+    post_id INT NOT NULL,  -- ID of the post being voted on
     vote_value SMALLINT NOT NULL  -- Vote value: 1 or -1 
 );
 
