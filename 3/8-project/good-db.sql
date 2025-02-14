@@ -31,7 +31,7 @@ ADD CONSTRAINT "chk_topic_name" CHECK (trim("name") <> '');
 
 CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
-    topic_id INT ,
+    topic_id INT NOT NULL,
     user_id INT,
     title VARCHAR(100) NOT NULL,
     url VARCHAR(400) ,
